@@ -2398,4 +2398,49 @@ describe("LoopsClient", () => {
       );
     });
   });
+  describe("IDs in endpoint paths", () => {
+    const okResponse = () =>
+      jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify({ success: true })),
+      });
+
+    it("should not let a node ID reach another workflow", async () => {
+      global.fetch = okResponse();
+
+      await client.deleteWorkflowNode("wf_1", "../../wf_2", {
+        expectedRevisionId: null,
+      });
+
+      const [url, init] = (fetch as jest.Mock).mock.calls[0];
+      expect(init.method).toBe("DELETE");
+      expect(url).toBe(
+        "https://app.loops.so/api/v1/workflows/wf_1/nodes/..%2F..%2Fwf_2"
+      );
+    });
+
+    it("should keep query and fragment characters inside the ID", async () => {
+      global.fetch = okResponse();
+
+      await client.getTheme("theme?id=other#x");
+
+      expect((fetch as jest.Mock).mock.calls[0][0]).toBe(
+        "https://app.loops.so/api/v1/themes/theme%3Fid%3Dother%23x"
+      );
+    });
+
+    it.each(["", ".", ".."])(
+      "should reject the ID %p without sending a request",
+      async (id) => {
+        global.fetch = okResponse();
+
+        await expect(client.getCampaign(id)).rejects.toThrow(ValidationError);
+        await expect(
+          client.deleteWorkflowNode("wf_1", id, { expectedRevisionId: null })
+        ).rejects.toThrow(ValidationError);
+        expect(fetch).not.toHaveBeenCalled();
+      }
+    );
+  });
 });

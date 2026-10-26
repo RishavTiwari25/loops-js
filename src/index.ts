@@ -895,6 +895,22 @@ class ValidationError extends Error {
   }
 }
 
+/**
+ * Encodes a value as a single URL path segment.
+ *
+ * IDs are interpolated into endpoint paths, and `new URL()` resolves `..`
+ * segments, so an unencoded ID such as `"../../wf_2"` would send the request
+ * to a different endpoint (here, another workflow), and `?` or `#` would cut
+ * the path short.
+ */
+function pathSegment(value: string): string {
+  const segment = String(value);
+  if (segment === "" || segment === "." || segment === "..") {
+    throw new ValidationError(`Invalid ID: "${segment}"`);
+  }
+  return encodeURIComponent(segment);
+}
+
 class LoopsClient {
   apiKey: string;
   apiRoot = "https://app.loops.so/api/";
@@ -1410,7 +1426,7 @@ class LoopsClient {
     transactionalId: string
   ): Promise<TransactionalEmailResource> {
     return this._makeQuery({
-      path: `v1/transactional-emails/${transactionalId}`,
+      path: `v1/transactional-emails/${pathSegment(transactionalId)}`,
     });
   }
 
@@ -1471,7 +1487,7 @@ class LoopsClient {
       payload.transactionalGroupId = transactionalGroupId;
     }
     return this._makeQuery({
-      path: `v1/transactional-emails/${transactionalId}`,
+      path: `v1/transactional-emails/${pathSegment(transactionalId)}`,
       method: "POST",
       payload,
     });
@@ -1490,7 +1506,7 @@ class LoopsClient {
     transactionalId: string
   ): Promise<TransactionalDraftResponse> {
     return this._makeQuery({
-      path: `v1/transactional-emails/${transactionalId}/draft`,
+      path: `v1/transactional-emails/${pathSegment(transactionalId)}/draft`,
       method: "POST",
     });
   }
@@ -1508,7 +1524,7 @@ class LoopsClient {
     transactionalId: string
   ): Promise<TransactionalEmailResource> {
     return this._makeQuery({
-      path: `v1/transactional-emails/${transactionalId}/publish`,
+      path: `v1/transactional-emails/${pathSegment(transactionalId)}/publish`,
       method: "POST",
     });
   }
@@ -1567,7 +1583,7 @@ class LoopsClient {
     audienceSegmentId: string
   ): Promise<AudienceSegment> {
     return this._makeQuery({
-      path: `v1/audience-segments/${audienceSegmentId}`,
+      path: `v1/audience-segments/${pathSegment(audienceSegmentId)}`,
     });
   }
 
@@ -1644,7 +1660,7 @@ class LoopsClient {
    */
   async getTheme(themeId: string): Promise<ThemeResponse> {
     return this._makeQuery({
-      path: `v1/themes/${themeId}`,
+      path: `v1/themes/${pathSegment(themeId)}`,
     });
   }
 
@@ -1704,7 +1720,7 @@ class LoopsClient {
     if (name !== undefined) payload.name = name;
     if (styles !== undefined) payload.styles = styles;
     return this._makeQuery({
-      path: `v1/themes/${themeId}`,
+      path: `v1/themes/${pathSegment(themeId)}`,
       method: "POST",
       payload,
     });
@@ -1749,7 +1765,7 @@ class LoopsClient {
    */
   async getComponent(componentId: string): Promise<ComponentResponse> {
     return this._makeQuery({
-      path: `v1/components/${componentId}`,
+      path: `v1/components/${pathSegment(componentId)}`,
     });
   }
 
@@ -1807,7 +1823,7 @@ class LoopsClient {
     if (name !== undefined) payload.name = name;
     if (lmx !== undefined) payload.lmx = lmx;
     return this._makeQuery({
-      path: `v1/components/${componentId}`,
+      path: `v1/components/${pathSegment(componentId)}`,
       method: "POST",
       payload,
     });
@@ -1904,7 +1920,7 @@ class LoopsClient {
    */
   async getCampaign(campaignId: string): Promise<CampaignResponse> {
     return this._makeQuery({
-      path: `v1/campaigns/${campaignId}`,
+      path: `v1/campaigns/${pathSegment(campaignId)}`,
     });
   }
 
@@ -1959,7 +1975,7 @@ class LoopsClient {
     if (audienceFilter !== undefined) payload.audienceFilter = audienceFilter;
     if (scheduling !== undefined) payload.scheduling = scheduling;
     return this._makeQuery({
-      path: `v1/campaigns/${campaignId}`,
+      path: `v1/campaigns/${pathSegment(campaignId)}`,
       method: "POST",
       payload,
     });
@@ -1976,7 +1992,7 @@ class LoopsClient {
    */
   async getEmailMessage(emailMessageId: string): Promise<EmailMessageResponse> {
     return this._makeQuery({
-      path: `v1/email-messages/${emailMessageId}`,
+      path: `v1/email-messages/${pathSegment(emailMessageId)}`,
     });
   }
 
@@ -2076,7 +2092,7 @@ class LoopsClient {
       payload.dataVariablesFallbacks = dataVariablesFallbacks;
     }
     return this._makeQuery({
-      path: `v1/email-messages/${emailMessageId}`,
+      path: `v1/email-messages/${pathSegment(emailMessageId)}`,
       method: "POST",
       payload,
     });
@@ -2124,7 +2140,7 @@ class LoopsClient {
     }
     if (dataVariables !== undefined) payload.dataVariables = dataVariables;
     return this._makeQuery({
-      path: `v1/email-messages/${emailMessageId}/preview`,
+      path: `v1/email-messages/${pathSegment(emailMessageId)}/preview`,
       method: "POST",
       payload,
     });
@@ -2146,7 +2162,7 @@ class LoopsClient {
     emailMessageId: string
   ): Promise<EmailMessageGuardianResponse> {
     return this._makeQuery({
-      path: `v1/email-messages/${emailMessageId}/guardian`,
+      path: `v1/email-messages/${pathSegment(emailMessageId)}/guardian`,
     });
   }
 
@@ -2189,7 +2205,7 @@ class LoopsClient {
    */
   async getEventPattern(eventPatternId: string): Promise<EventPattern> {
     return this._makeQuery({
-      path: `v1/event-patterns/${eventPatternId}`,
+      path: `v1/event-patterns/${pathSegment(eventPatternId)}`,
     });
   }
 
@@ -2204,7 +2220,7 @@ class LoopsClient {
    */
   async getEventPatternByName(eventName: string): Promise<EventPattern> {
     return this._makeQuery({
-      path: `v1/event-patterns/by-name/${encodeURIComponent(eventName)}`,
+      path: `v1/event-patterns/by-name/${pathSegment(eventName)}`,
     });
   }
 
@@ -2284,7 +2300,7 @@ class LoopsClient {
     workflowId: string
   ): Promise<SimplifiedWorkflow> {
     return this._makeQuery({
-      path: `v1/workflows/${workflowId}`,
+      path: `v1/workflows/${pathSegment(workflowId)}`,
     });
   }
 
@@ -2324,7 +2340,7 @@ class LoopsClient {
     if (name !== undefined) payload.name = name;
     if (description !== undefined) payload.description = description;
     return this._makeQuery({
-      path: `v1/workflows/${workflowId}`,
+      path: `v1/workflows/${pathSegment(workflowId)}`,
       method: "POST",
       payload,
     });
@@ -2363,7 +2379,7 @@ class LoopsClient {
     } = { expectedRevisionId };
     if (confirmDelete !== undefined) payload.confirmDelete = confirmDelete;
     await this._makeQuery({
-      path: `v1/workflows/${workflowId}`,
+      path: `v1/workflows/${pathSegment(workflowId)}`,
       method: "DELETE",
       payload,
     });
@@ -2412,7 +2428,7 @@ class LoopsClient {
       payload.queuedContactPolicy = queuedContactPolicy;
     }
     return this._makeQuery({
-      path: `v1/workflows/${workflowId}/mailing-list`,
+      path: `v1/workflows/${pathSegment(workflowId)}/mailing-list`,
       method: "POST",
       payload,
     });
@@ -2438,7 +2454,7 @@ class LoopsClient {
     params: CreateWorkflowNodeParams
   ): Promise<CreateWorkflowNodeResponse> {
     return this._makeQuery({
-      path: `v1/workflows/${workflowId}/nodes`,
+      path: `v1/workflows/${pathSegment(workflowId)}/nodes`,
       method: "POST",
       payload: params,
     });
@@ -2459,7 +2475,7 @@ class LoopsClient {
     nodeId: string
   ): Promise<WorkflowNodeWithRevision> {
     return this._makeQuery({
-      path: `v1/workflows/${workflowId}/nodes/${nodeId}`,
+      path: `v1/workflows/${pathSegment(workflowId)}/nodes/${pathSegment(nodeId)}`,
     });
   }
 
@@ -2491,7 +2507,7 @@ class LoopsClient {
     }
   ): Promise<UpdateWorkflowNodeResponse> {
     return this._makeQuery({
-      path: `v1/workflows/${workflowId}/nodes/${nodeId}`,
+      path: `v1/workflows/${pathSegment(workflowId)}/nodes/${pathSegment(nodeId)}`,
       method: "POST",
       payload: { expectedRevisionId, payload },
     });
@@ -2538,7 +2554,7 @@ class LoopsClient {
       payload.queuedContactPolicy = queuedContactPolicy;
     }
     return this._makeQuery({
-      path: `v1/workflows/${workflowId}/nodes/${nodeId}`,
+      path: `v1/workflows/${pathSegment(workflowId)}/nodes/${pathSegment(nodeId)}`,
       method: "DELETE",
       payload,
     });
@@ -2566,7 +2582,7 @@ class LoopsClient {
     }
   ): Promise<AddWorkflowBranchResponse> {
     return this._makeQuery({
-      path: `v1/workflows/${workflowId}/nodes/${nodeId}/add-branch`,
+      path: `v1/workflows/${pathSegment(workflowId)}/nodes/${pathSegment(nodeId)}/add-branch`,
       method: "POST",
       payload: { expectedRevisionId },
     });
@@ -2600,7 +2616,7 @@ class LoopsClient {
     }
   ): Promise<RerouteNodeConnectionResponse> {
     return this._makeQuery({
-      path: `v1/workflows/${workflowId}/nodes/${nodeId}/reroute`,
+      path: `v1/workflows/${pathSegment(workflowId)}/nodes/${pathSegment(nodeId)}/reroute`,
       method: "POST",
       payload: { expectedRevisionId, newTargetNodeId },
     });
@@ -2647,7 +2663,7 @@ class LoopsClient {
       payload.queuedContactPolicy = queuedContactPolicy;
     }
     return this._makeQuery({
-      path: `v1/workflows/${workflowId}/nodes/${nodeId}/recursive`,
+      path: `v1/workflows/${pathSegment(workflowId)}/nodes/${pathSegment(nodeId)}/recursive`,
       method: "DELETE",
       payload,
     });
@@ -2719,7 +2735,7 @@ class LoopsClient {
    */
   async getCampaignGroup(campaignGroupId: string): Promise<Group> {
     return this._makeQuery({
-      path: `v1/campaign-groups/${campaignGroupId}`,
+      path: `v1/campaign-groups/${pathSegment(campaignGroupId)}`,
     });
   }
 
@@ -2749,7 +2765,7 @@ class LoopsClient {
     if (name !== undefined) payload.name = name;
     if (description !== undefined) payload.description = description;
     return this._makeQuery({
-      path: `v1/campaign-groups/${campaignGroupId}`,
+      path: `v1/campaign-groups/${pathSegment(campaignGroupId)}`,
       method: "POST",
       payload,
     });
@@ -2823,7 +2839,7 @@ class LoopsClient {
     transactionalGroupId: string
   ): Promise<Group> {
     return this._makeQuery({
-      path: `v1/transactional-groups/${transactionalGroupId}`,
+      path: `v1/transactional-groups/${pathSegment(transactionalGroupId)}`,
     });
   }
 
@@ -2853,7 +2869,7 @@ class LoopsClient {
     if (name !== undefined) payload.name = name;
     if (description !== undefined) payload.description = description;
     return this._makeQuery({
-      path: `v1/transactional-groups/${transactionalGroupId}`,
+      path: `v1/transactional-groups/${pathSegment(transactionalGroupId)}`,
       method: "POST",
       payload,
     });
@@ -2895,7 +2911,7 @@ class LoopsClient {
    */
   async completeUpload(id: string): Promise<CompleteUploadResponse> {
     return this._makeQuery({
-      path: `v1/uploads/${id}/complete`,
+      path: `v1/uploads/${pathSegment(id)}/complete`,
       method: "POST",
     });
   }
